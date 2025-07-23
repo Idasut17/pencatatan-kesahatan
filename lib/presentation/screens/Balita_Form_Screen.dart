@@ -73,7 +73,7 @@ class _BalitaFormScreenState extends State<BalitaFormScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _tanggalLahir,
-      firstDate: DateTime(DateTime.now().year - 5), // Batas 5 tahun ke belakang
+      firstDate: DateTime(2010, 1, 1), // Batas dari tahun 2010
       lastDate: DateTime.now(),
       locale: const Locale('id', 'ID'),
     );

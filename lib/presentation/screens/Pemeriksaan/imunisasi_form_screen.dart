@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/data/API/ImunisasiService.dart';
 import 'package:flutter_application_1/data/models/balitaModel.dart';
 import 'package:flutter_application_1/data/models/imunisasi.dart';
+
 import 'package:flutter_application_1/presentation/widgets/login_background.dart';
 import 'package:intl/intl.dart';
 
@@ -37,10 +38,8 @@ class _ImunisasiFormScreenState extends State<ImunisasiFormScreen> {
   @override
   void initState() {
     super.initState();
-    // Set opsi imunisasi dari parameter jika ada, jika tidak pakai default
-    _opsiImunisasi = widget.jenisImunisasiTersedia.isNotEmpty
-        ? widget.jenisImunisasiTersedia
-        : ['DPT', 'Campak'];
+    // Selalu gunakan enum dari database
+    _opsiImunisasi = ['DPT', 'Campak', 'Hepatitis B'];
     // Jika ini mode edit, isi form dengan data yang ada
     if (_isEditing) {
       final imunisasi = widget.imunisasiToEdit!;

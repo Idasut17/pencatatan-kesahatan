@@ -1,5 +1,7 @@
 import 'package:flutter_application_1/data/models/posyanduModel.dart';
 
+import 'imunisasi.dart';
+
 class BalitaModel {
   int? id;
   String nama;
@@ -14,6 +16,7 @@ class BalitaModel {
   final DateTime? tanggalKematian;
   int? userId;
   bool? sudahImunisasi; // status imunisasi
+  List<Imunisasi> imunisasiList;
 
   BalitaModel({
     this.id,
@@ -26,9 +29,10 @@ class BalitaModel {
     required this.posyanduId,
     required this.bukuKIA,
     this.posyandu,
-    this.tanggalKematian, // <-- TAMBAHKAN INI DI CONSTRUCTOR
+    this.tanggalKematian,
     this.sudahImunisasi,
     this.userId,
+    this.imunisasiList = const [],
   });
 
   factory BalitaModel.fromJson(Map<String, dynamic> json) {
@@ -43,7 +47,7 @@ class BalitaModel {
       posyanduId: json['posyandu_id'],
       bukuKIA: json['Buku_KIA'],
       posyandu:
-          json['posyandu'] != null
+          (json['posyandu'] != null && json['posyandu'] is Map<String, dynamic>)
               ? PosyanduModel.fromJson(json['posyandu'])
               : null,
       tanggalKematian:
@@ -53,6 +57,12 @@ class BalitaModel {
       userId: json['user_id'],
       sudahImunisasi:
           json['sudah_imunisasi'] == true || json['sudah_imunisasi'] == 1,
+      imunisasiList:
+          json['imunisasi'] != null && json['imunisasi'] is List
+              ? List<Imunisasi>.from(
+                (json['imunisasi'] as List).map((x) => Imunisasi.fromJson(x)),
+              )
+              : [],
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_application_1/data/API/BaseURL.dart';
+import 'package:flutter_application_1/data/API/authservice.dart';
 import 'package:http/http.dart' as http;
 import '../models/kematian.dart'; // Pastikan path ini benar
 
@@ -121,7 +122,7 @@ class KematianService {
     try {
       final response = await http.get(
         Uri.parse('$base_url/kematian'),
-        headers: {'Accept': 'application/json'},
+        headers: await AuthService.getAuthHeaders(),
       );
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -135,6 +136,38 @@ class KematianService {
       } else {
         throw Exception(
           'Gagal memuat data kematian: Status ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
+  /// Mengambil data kematian berdasarkan user yang sedang login
+  Future<List<Kematian>> getAllKematianByUser() async {
+    try {
+      final userId = await AuthService.getUserId();
+      if (userId == null) {
+        throw Exception('User tidak terautentikasi');
+      }
+
+      final response = await http.get(
+        Uri.parse('$base_url/kematian/user/$userId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded['data'] != null && decoded['data'] is List) {
+          return (decoded['data'] as List)
+              .map((item) => Kematian.fromJson(item))
+              .toList();
+        } else {
+          return [];
+        }
+      } else {
+        throw Exception(
+          'Gagal memuat data kematian user: Status ${response.statusCode}',
         );
       }
     } catch (e) {

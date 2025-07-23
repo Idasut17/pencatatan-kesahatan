@@ -5,6 +5,52 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/auth_model.dart';
 
 class AuthService {
+  // Update profile
+  static Future<bool> updateProfile(String name, String email) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$base_url/profile'),
+        headers: await getAuthHeaders(),
+        body: jsonEncode({'name': name, 'email': email}),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('Update profile failed: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error updating profile: $e');
+      return false;
+    }
+  }
+
+  // Change password
+  static Future<bool> changePassword(
+    String oldPassword,
+    String newPassword,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$base_url/change-password'),
+        headers: await getAuthHeaders(),
+        body: jsonEncode({
+          'old_password': oldPassword,
+          'new_password': newPassword,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('Change password failed: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error changing password: $e');
+      return false;
+    }
+  }
+
   // Secure storage instance
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),

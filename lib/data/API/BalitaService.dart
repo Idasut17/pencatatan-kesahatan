@@ -1,10 +1,169 @@
 import 'package:flutter_application_1/data/API/BaseURL.dart';
 import 'package:flutter_application_1/data/API/authservice.dart';
 import 'package:flutter_application_1/data/models/balitaModel.dart';
+import 'package:flutter_application_1/data/models/imunisasi.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Balitaservice {
+  /// Get balita yang belum imunisasi by posyandu
+  Future<List<BalitaModel>> getAllBalitaWithNotImunisasi(int posyanduId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$base_url/balita/notimunisasi/$posyanduId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['data'] as List)
+            .map((e) => BalitaModel.fromJson(e))
+            .toList();
+      } else {
+        throw Exception('Gagal memuat data balita belum imunisasi');
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
+  // Get all balita by user (user yang sedang login)
+  Future<List<BalitaModel>> getAllBalitaByUser() async {
+    try {
+      final userId = await AuthService.getUserId();
+      if (userId == null) {
+        throw Exception('User tidak terautentikasi');
+      }
+
+      final response = await http.get(
+        Uri.parse('$base_url/balita/user/$userId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['data'] as List)
+            .map((e) => BalitaModel.fromJson(e))
+            .toList();
+      } else {
+        throw Exception('Gagal memuat data balita user');
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
+  // Get balita by posyandu untuk user yang sedang login
+  Future<List<BalitaModel>> GetBalitaByPosyanduAndUser(int posyanduId) async {
+    try {
+      final userId = await AuthService.getUserId();
+      if (userId == null) {
+        throw Exception('User tidak terautentikasi');
+      }
+
+      final response = await http.get(
+        Uri.parse('$base_url/balita/posyandu/$posyanduId/user/$userId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['data'] as List)
+            .map((e) => BalitaModel.fromJson(e))
+            .toList();
+      } else {
+        throw Exception('Gagal memuat data balita posyandu untuk user');
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
+  // Get balita aktif by posyandu
+  Future<List<BalitaModel>> getBalitaAktifByPosyandu(int posyanduId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$base_url/balita/aktif/$posyanduId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['data'] as List)
+            .map((e) => BalitaModel.fromJson(e))
+            .toList();
+      } else {
+        throw Exception('Gagal memuat data balita aktif');
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
+  // Get balita inaktif by posyandu
+  Future<List<BalitaModel>> getBalitaInAktifByPosyandu(int posyanduId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$base_url/balita/inaktif/$posyanduId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['data'] as List)
+            .map((e) => BalitaModel.fromJson(e))
+            .toList();
+      } else {
+        throw Exception('Gagal memuat data balita inaktif');
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
+  // Search balita
+  Future<List<BalitaModel>> searchBalita(String keyword) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$base_url/balita/search?keyword=$keyword'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['data'] as List)
+            .map((e) => BalitaModel.fromJson(e))
+            .toList();
+      } else {
+        throw Exception('Gagal mencari data balita');
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
+  Future<List<BalitaModel>> getBalitaBelumImunisasi(int posyanduId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$base_url/balita/notimunisasi/$posyanduId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['data'] as List)
+            .map((e) => BalitaModel.fromJson(e))
+            .toList();
+      } else {
+        throw Exception('Gagal memuat data balita belum imunisasi');
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
   Future<void> CreateBalita(
     String nama,
     String nik,
@@ -172,6 +331,35 @@ class Balitaservice {
       print('Data balita berhasil diperbarui.');
     } catch (e) {
       print(e);
+      throw Exception('Gagal terhubung ke server: $e');
+    }
+  }
+
+  // Get balita yang perlu imunisasi mendatang by user (18+ bulan tanpa imunisasi)
+  Future<List<BalitaModel>> getAllBalitaWithNotImunisasiByUser() async {
+    try {
+      final userId = await AuthService.getUserId();
+      if (userId == null) {
+        throw Exception('User tidak terautentikasi');
+      }
+
+      final response = await http.get(
+        Uri.parse('$base_url/balita/notimunisasi/user/$userId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return (data['data'] as List)
+            .map((e) => BalitaModel.fromJson(e))
+            .toList();
+      } else {
+        throw Exception(
+          'Gagal memuat data balita yang perlu imunisasi mendatang',
+        );
+      }
+    } catch (e) {
+      print('Error getAllBalitaWithNotImunisasiByUser: $e');
       throw Exception('Gagal terhubung ke server: $e');
     }
   }

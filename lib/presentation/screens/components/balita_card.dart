@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/data/models/balitaModel.dart';
-import 'package:intl/intl.dart';
 
 class BalitaCard extends StatelessWidget {
   final BalitaModel balita;
@@ -10,16 +9,30 @@ class BalitaCard extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const BalitaCard({
-    super.key,
+    Key? key,
     required this.balita,
     required this.age,
     required this.isDeceased,
     this.onTap,
     this.onDelete,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String subtitleText = 'NIK: ${balita.nik}\n';
+    if (isDeceased) {
+      subtitleText +=
+          balita.tanggalKematian != null
+              ? 'Meninggal: ${balita.tanggalKematian!.day.toString().padLeft(2, '0')}-${balita.tanggalKematian!.month.toString().padLeft(2, '0')}-${balita.tanggalKematian!.year}'
+              : 'Meninggal: Tanggal tidak tersedia';
+    } else {
+      subtitleText += 'Ibu: ${balita.namaIbu} | Usia: $age tahun';
+      subtitleText +=
+          '\nStatus Imunisasi: ' +
+          (balita.sudahImunisasi == true
+              ? 'Sudah Imunisasi'
+              : 'Belum Imunisasi');
+    }
     return Card(
       color:
           isDeceased
@@ -38,29 +51,15 @@ class BalitaCard extends StatelessWidget {
               isDeceased
                   ? Colors.red.shade700
                   : age >= 6
-                  ? Colors.orange.shade700
-                  : Theme.of(context).primaryColor,
+                  ? Colors.orange
+                  : Colors.teal,
         ),
         title: Text(
           balita.nama,
-          style: TextStyle(
-            decoration: isDeceased ? TextDecoration.lineThrough : null,
-            color: isDeceased ? Colors.red.shade700 : null,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('NIK: ${balita.nik}'),
-            Text(
-              isDeceased
-                  ? (balita.tanggalKematian != null
-                      ? 'Meninggal: ${DateFormat('dd MMMM yyyy').format(balita.tanggalKematian!)}'
-                      : 'Meninggal: Tanggal tidak tersedia')
-                  : 'Ibu: ${balita.namaIbu} | Usia: $age tahun',
-            ),
-          ],
-        ),
+        subtitle: Text(subtitleText),
+        isThreeLine: true,
         onTap: onTap,
         trailing:
             isDeceased

@@ -197,6 +197,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
     );
   }
 
+  // ignore: unused_element
   Widget _buildCustomAppBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),

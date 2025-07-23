@@ -5,8 +5,8 @@ import 'package:flutter_application_1/data/models/balitaModel.dart';
 import 'package:flutter_application_1/presentation/screens/components/loading_indicator.dart';
 
 class ImunisasiBalitaScreen extends StatefulWidget {
-  final PosyanduModel posyandu;
-  const ImunisasiBalitaScreen({super.key, required this.posyandu});
+  final PosyanduModel? posyandu;
+  const ImunisasiBalitaScreen({super.key, this.posyandu});
 
   @override
   State<ImunisasiBalitaScreen> createState() => _ImunisasiBalitaScreenState();
@@ -20,7 +20,20 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   @override
   void initState() {
     super.initState();
-    _balitaList = _balitaService.GetBalitaByPosyandu(widget.posyandu.id!);
+    _loadBalitaList();
+  }
+
+  void _loadBalitaList() {
+    if (_filter == 'semua' || widget.posyandu == null) {
+      _balitaList = _balitaService.GetAllBalita();
+    } else if (_filter == 'belum') {
+      _balitaList = _balitaService.getBalitaBelumImunisasi(
+        widget.posyandu!.id!,
+      );
+    } else {
+      _balitaList = _balitaService.GetBalitaByPosyandu(widget.posyandu!.id!);
+    }
+    setState(() {});
   }
 
   List<BalitaModel> _filterBalita(List<BalitaModel> allBalita) {
@@ -47,9 +60,9 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
               DropdownMenuItem(value: 'belum', child: Text('Belum Imunisasi')),
             ],
             onChanged: (val) {
-              setState(() {
-                _filter = val!;
-              });
+              if (val == null) return;
+              _filter = val;
+              _loadBalitaList();
             },
           ),
         ],
@@ -74,6 +87,10 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
             itemCount: filteredBalita.length,
             itemBuilder: (context, index) {
               final balita = filteredBalita[index];
+              print(
+                'Balita: ${balita.nama}, Posyandu: ${balita.posyandu?.namaPosyandu}',
+              );
+              print('Debug posyandu data: ${balita.posyandu}');
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
@@ -87,7 +104,10 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
                             : Colors.grey,
                   ),
                   title: Text(balita.nama),
-                  subtitle: Text('NIK: ${balita.nik}\nIbu: ${balita.namaIbu}'),
+                  subtitle: Text(
+                    'NIK: ${balita.nik}\nIbu: ${balita.namaIbu}\nPosyandu: ${balita.posyandu?.namaPosyandu ?? "-"}',
+                  ),
+                  isThreeLine: true,
                   trailing: Text(
                     balita.sudahImunisasi == true ? 'Sudah' : 'Belum',
                   ),

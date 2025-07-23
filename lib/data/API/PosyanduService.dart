@@ -5,6 +5,50 @@ import 'package:flutter_application_1/data/models/posyanduModel.dart';
 import 'package:http/http.dart' as http;
 
 class Posyanduservice {
+  // Search posyandu
+  Future<List<PosyanduModel>> searchPosyandu(String keyword) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$base_url/posyandu/search?keyword=$keyword'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responDecode = json.decode(response.body);
+        final List<dynamic> data = responDecode['data'];
+        return data.map((item) => PosyanduModel.fromJson(item)).toList();
+      } else {
+        throw Exception('Gagal mencari posyandu: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal mencari posyandu: $e');
+    }
+  }
+
+  // Get posyandu with balita count
+  Future<PosyanduModel?> getWithBalitaCount(int posyanduId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$base_url/posyandu/with-balita-count/$posyanduId'),
+        headers: await AuthService.getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responDecode = json.decode(response.body);
+        if (responDecode['data'] != null) {
+          return PosyanduModel.fromJson(responDecode['data']);
+        }
+        return null;
+      } else {
+        throw Exception(
+          'Gagal mengambil data posyandu: ${response.reasonPhrase}',
+        );
+      }
+    } catch (e) {
+      print(e);
+      throw Exception('Gagal mengambil data posyandu: $e');
+    }
+  }
+
   Future<void> CreatePosyandu(String namaPosyandu, String namaDesa) async {
     try {
       final userId = await AuthService.getUserId();

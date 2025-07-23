@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/data/API/BalitaService.dart';
 import 'package:flutter_application_1/data/API/kematianService.dart';
+import 'package:flutter_application_1/data/API/authservice.dart';
 import 'package:flutter_application_1/data/models/kematian.dart';
 import 'package:flutter_application_1/data/models/posyanduModel.dart';
 import 'package:flutter_application_1/data/models/balitaModel.dart';
@@ -14,9 +15,8 @@ import 'package:flutter_application_1/presentation/screens/components/loading_in
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 class KohortDetailScreen extends StatefulWidget {
-  final PosyanduModel posyandu;
-  const KohortDetailScreen({Key? key, required this.posyandu})
-    : super(key: key);
+  final PosyanduModel? posyandu;
+  const KohortDetailScreen({Key? key, this.posyandu}) : super(key: key);
 
   @override
   State<KohortDetailScreen> createState() => _KohortDetailScreenState();
@@ -24,6 +24,7 @@ class KohortDetailScreen extends StatefulWidget {
 
 class _KohortDetailScreenState extends State<KohortDetailScreen>
     with RouteAware {
+
   // Widget untuk sidebar filter (mirip AllBalitaScreen, warna dan icon disesuaikan)
   Widget _buildFilterSidebar() {
     return Drawer(
@@ -279,6 +280,7 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
             color: isSelected ? color : Colors.grey[700],
           ),
         ),
+        subtitle: const SizedBox.shrink(),
         trailing: isSelected ? Icon(Icons.check, color: color) : null,
         onTap: () {
           Navigator.of(context).pop();
@@ -298,6 +300,10 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
 
   // Widget untuk baris statistik
 
+  // Variabel untuk menyimpan status autentikasi
+  bool _isAuthenticated = false;
+  int? _currentUserId; // Tambahkan variabel untuk menyimpan user ID
+
   late Future<List<BalitaModel>> _balitaList;
   final Balitaservice _balitaService = Balitaservice();
   final KematianService _kematianService = KematianService();
@@ -315,8 +321,56 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
   @override
   void initState() {
     super.initState();
-    _balitaList = _balitaService.GetBalitaByPosyandu(widget.posyandu.id!);
-    _refreshAllData();
+    _checkAuthenticationAndLoadData();
+  }
+
+  // Fungsi untuk cek autentikasi dan load data berdasarkan user login
+  Future<void> _checkAuthenticationAndLoadData() async {
+    try {
+      final isLoggedIn = await AuthService.isLoggedIn();
+      final userId = await AuthService.getUserId();
+
+      if (!isLoggedIn || userId == null) {
+        // Redirect ke login jika tidak terautentikasi
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+        return;
+      }
+
+      setState(() {
+        _isAuthenticated = true;
+        _currentUserId = userId; // Simpan user ID
+      });
+
+      // Load data berdasarkan posyandu dan user
+      _loadBalitaData();
+      _refreshAllData();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  // Fungsi untuk load data balita berdasarkan user dan posyandu
+  void _loadBalitaData() {
+    if (_currentUserId != null) {
+      if (widget.posyandu != null) {
+        // Jika ada posyandu yang dipilih, ambil data balita berdasarkan posyandu dan user
+        _balitaList = _balitaService.GetBalitaByPosyanduAndUser(
+          widget.posyandu!.id!,
+        );
+      } else {
+        // Jika tidak ada posyandu, ambil semua data balita milik user
+        _balitaList = _balitaService.getAllBalitaByUser();
+      }
+    } else {
+      // Fallback jika tidak ada user id - buat future yang return empty list
+      _balitaList = Future.value(<BalitaModel>[]);
+    }
   }
 
   @override
@@ -349,21 +403,50 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
   // Fungsi untuk memuat ulang data kematian
   Future<void> _refreshKematianList() async {
     try {
-      final List<Kematian> kematianList =
-          await _kematianService.getAllKematian();
+      print('=== LOADING KEMATIAN DATA ===');
+      print('Current User ID: $_currentUserId');
+
+      // Coba ambil data kematian berdasarkan user dulu
+      List<Kematian> kematianList = [];
+      try {
+        kematianList = await _kematianService.getAllKematianByUser();
+        print('User-specific kematian data: ${kematianList.length}');
+      } catch (e) {
+        print('Error getting user-specific kematian: $e');
+        // Fallback ke semua data kematian untuk debugging
+        try {
+          kematianList = await _kematianService.getAllKematian();
+          print('Fallback to all kematian data: ${kematianList.length}');
+        } catch (e2) {
+          print('Error getting all kematian: $e2');
+        }
+      }
+
+      print('Total kematian data: ${kematianList.length}');
+      for (var kematian in kematianList) {
+        print(
+          'Kematian - balitaId: ${kematian.balitaId}, tanggal: ${kematian.tanggalKematian}',
+        );
+      }
+
       setState(() {
         _idBalitaMeninggal = kematianList.map((k) => k.balitaId).toList();
       });
+
+      print('ID Balita Meninggal: $_idBalitaMeninggal');
+      print('==============================');
     } catch (e) {
       // Optional: tampilkan error jika gagal load kematian
+      print('ERROR loading kematian data: $e');
+      print('Stack trace: ${e.toString()}');
       debugPrint('Gagal memuat data kematian: $e');
     }
   }
 
-  // Fungsi untuk memuat ulang data dari API
+  // Fungsi untuk memuat ulang data dari API berdasarkan user login
   void _refreshBalitaList() {
     setState(() {
-      _balitaList = _balitaService.GetBalitaByPosyandu(widget.posyandu.id!);
+      _loadBalitaData();
     });
   }
 
@@ -382,34 +465,51 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
   List<BalitaModel> _filterBalita(List<BalitaModel> allBalita) {
     List<BalitaModel> filtered = allBalita;
 
+    // Debug print untuk troubleshooting
+    print('=== DEBUG FILTER ===');
+    print('Total balita: ${allBalita.length}');
+    print('Status filter: $_statusFilter');
+    print('ID Balita Meninggal: $_idBalitaMeninggal');
+
     // Filter berdasarkan status tanpa mode aktif/riwayat
     if (_statusFilter == 'semua') {
       // Semua balita
       // Tidak filter tambahan
     } else if (_statusFilter == 'aktif') {
       filtered =
-          filtered
-              .where(
-                (balita) =>
-                    _calculateAge(balita.tanggalLahir) < 6 &&
-                    !_idBalitaMeninggal.contains(balita.id),
-              )
-              .toList();
+          filtered.where((balita) {
+            final age = _calculateAge(balita.tanggalLahir);
+            final isNotDead = !_idBalitaMeninggal.contains(balita.id);
+            final isActive = age < 6 && isNotDead;
+            print(
+              'Balita ${balita.nama}: age=$age, notDead=$isNotDead, active=$isActive',
+            );
+            return isActive;
+          }).toList();
     } else if (_statusFilter == 'tidak_aktif') {
       filtered =
-          filtered
-              .where(
-                (balita) =>
-                    _calculateAge(balita.tanggalLahir) >= 6 &&
-                    !_idBalitaMeninggal.contains(balita.id),
-              )
-              .toList();
+          filtered.where((balita) {
+            final age = _calculateAge(balita.tanggalLahir);
+            final isNotDead = !_idBalitaMeninggal.contains(balita.id);
+            final isInactive = age >= 6 && isNotDead;
+            print(
+              'Balita ${balita.nama}: age=$age, notDead=$isNotDead, inactive=$isInactive',
+            );
+            return isInactive;
+          }).toList();
     } else if (_statusFilter == 'meninggal') {
       filtered =
-          filtered
-              .where((balita) => _idBalitaMeninggal.contains(balita.id))
-              .toList();
+          filtered.where((balita) {
+            final isDead = _idBalitaMeninggal.contains(balita.id);
+            print(
+              'Balita ${balita.nama}: isDead=$isDead, balitaId=${balita.id}',
+            );
+            return isDead;
+          }).toList();
     }
+
+    print('Filtered result: ${filtered.length} balita');
+    print('==================');
 
     // Filter berdasarkan pencarian
     if (_searchQuery.isNotEmpty) {
@@ -505,7 +605,7 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
           children: [
             Expanded(
               child: Text(
-                widget.posyandu.namaPosyandu,
+                widget.posyandu?.namaPosyandu ?? 'Semua Posyandu',
                 style: const TextStyle(
                   color: Color(0xFF00897B),
                   fontWeight: FontWeight.bold,
@@ -536,17 +636,21 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
         actions: [
           Builder(
             builder:
-                (context) => Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.teal.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.tune, color: Color(0xFF00897B)),
-                    onPressed: () => Scaffold.of(context).openEndDrawer(),
-                    tooltip: 'Filter Data',
-                  ),
+                (context) => Row(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.teal.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.tune, color: Color(0xFF00897B)),
+                        onPressed: () => Scaffold.of(context).openEndDrawer(),
+                        tooltip: 'Filter Data',
+                      ),
+                    ),
+                  ],
                 ),
           ),
         ],
@@ -756,12 +860,31 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BalitaFormScreen(posyanduId: widget.posyandu.id!),
-            ),
-          ).then((_) => _refreshAllData());
+          if (widget.posyandu != null && _isAuthenticated) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (_) => BalitaFormScreen(posyanduId: widget.posyandu!.id!),
+              ),
+            ).then((_) => _refreshAllData());
+          } else if (!_isAuthenticated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Anda harus login terlebih dahulu.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Pilih posyandu terlebih dahulu untuk menambah balita.',
+                ),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
         },
         tooltip: 'Tambah Balita',
         backgroundColor: const Color(0xFF00897B),
