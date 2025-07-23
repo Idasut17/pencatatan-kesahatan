@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal Interaktif - Aplikasi Kohort Balita</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Amikom Harmony -->
+    <!-- Application Structure Plan: A single-page narrative dashboard guiding the user from the core problem (inefficient data recording) to the proposed mobile app solution. The structure flows logically: Problem -> Solution (Interactive Mockup) -> Architecture -> Timeline -> Budget -> Contact. This is more engaging than a static report and allows users to quickly grasp the project's value proposition and scope. Key interactions include an interactive budget chart and a clickable mockup gallery to explore the app's UI flow. -->
+    <!-- Visualization & Content Choices: Problem Section: Goal=Compare, Method=Side-by-side text cards with icons, Interaction=Hover effects, Justification=Clear, quick comparison of old vs. current issues. Solution Section: Goal=Organize/Inform, Method=Interactive phone mockup with clickable feature list, Interaction=Click to change mockup screen, Justification=Visually demonstrates the user journey in the proposed app in a highly engaging way. Budget Section: Goal=Inform/Compare, Method=Chart.js Donut Chart, Interaction=Hover tooltips, Justification=Instantly shows the proportional allocation of funds. Architecture/Timeline: Goal=Organize, Method=HTML/CSS diagrams, Interaction=None, Justification=Clearly visualizes the tech stack and project plan. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #1E293B;
+        }
+        .text-purple-accent { color: #5B21B6; }
+        .bg-purple-accent { background-color: #5B21B6; }
+        .border-purple-accent { border-color: #5B21B6; }
+        .bg-orange-accent { background-color: #EA580C; }
+        .text-orange-accent { color: #EA580C; }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #4C1D95;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 350px;
+            width: 100%;
+            max-width: 350px;
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link:hover {
+            color: #EA580C;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #EA580C;
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .phone-mockup {
+            background: #1E293B;
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        }
+        .phone-screen {
+            background: #F1F5F9; /* Light background for letterboxing */
+            border-radius: 30px;
+            overflow: hidden;
+            aspect-ratio: 9 / 19.5;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #phone-screen-img {
+            transition: opacity 0.4s ease-in-out;
+        }
+        .feature-item.active {
+            background-color: #EDE9FE;
+            border-color: #7C3AED;
+            color: #5B21B6;
+            transform: scale(1.05);
+        }
+        .animated-gradient {
+            background: linear-gradient(-45deg, #EEF2FF, #F3E8FF, #F0F9FF, #FEFCE8);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .timeline-item .timeline-content {
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+        }
+        .timeline-item:hover .timeline-content {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-lg font-bold text-purple-accent">
+                Proposal Kohort Balita
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#problem" class="nav-link text-gray-700 font-semibold">Masalah</a>
+                <a href="#solution" class="nav-link text-gray-700 font-semibold">Solusi</a>
+                <a href="#timeline" class="nav-link text-gray-700 font-semibold">Linimasa</a>
+                <a href="#mitra" class="nav-link text-gray-700 font-semibold">Mitra</a>
+            </div>
+            <a href="#contact" class="hidden md:block bg-orange-accent text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-transform hover:scale-105">
+                Kontak
+            </a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6">
+
+        <section id="hero" class="text-center py-24 animated-gradient -mx-6 px-6">
+            <div class="fade-in-section">
+                <img src="http://googleusercontent.com/file_content/1" alt="Logo Universitas Amikom Purwokerto" class="h-24 mx-auto mb-8">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-purple-accent mb-4 leading-tight">Aplikasi Pencatatan Register Kohort Balita</h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">Mentransformasi pencatatan data kesehatan balita menjadi lebih efisien, akurat, dan modern melalui solusi aplikasi mobile yang intuitif.</p>
+                <p class="font-medium text-gray-800">Oleh: Yusuf Nur Alam (22SA11A138)</p>
+            </div>
+        </section>
+
+        <section id="problem" class="py-24 fade-in-section">
+            <h2 class="section-title">Tantangan Saat Ini</h2>
+            <p class="text-center text-gray-600 max-w-3xl mx-auto mb-16">Proses pencatatan kohort balita yang krusial bagi pemantauan kesehatan anak dihadapkan pada dua masalah utama. Bagian ini menjelaskan kendala dari metode manual dan aplikasi web pemerintah yang ada, yang menjadi dasar kebutuhan akan solusi baru.</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 transition-transform hover:-translate-y-2">
+                    <div class="flex items-center mb-4">
+                        <span class="text-4xl mr-4">📖</span>
+                        <h3 class="text-2xl font-bold text-purple-accent">Metode Manual</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-700 list-disc list-inside">
+                        <li>Sangat memakan waktu dan melelahkan bagi bidan.</li>
+                        <li>Rentan terhadap kesalahan tulis dan rekap data.</li>
+                        <li>Tidak praktis karena harus membawa buku register fisik.</li>
+                        <li>Risiko kehilangan atau kerusakan data fisik.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 transition-transform hover:-translate-y-2">
+                    <div class="flex items-center mb-4">
+                        <span class="text-4xl mr-4">🌐</span>
+                        <h3 class="text-2xl font-bold text-purple-accent">Aplikasi E-Kohort Web</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-700 list-disc list-inside">
+                        <li>Implementasi belum optimal dan sering mengalami masalah teknis.</li>
+                        <li>Waktu loading lama menghambat efisiensi kerja.</li>
+                        <li>Koneksi internet tidak stabil menjadi kendala di lapangan.</li>
+                        <li>Sering terjadi *server error* yang membuat frustrasi pengguna.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="solution" class="py-24 fade-in-section">
+            <h2 class="section-title">Solusi Interaktif: Jelajahi Aplikasi</h2>
+            <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">Untuk menjawab tantangan tersebut, diusulkan aplikasi mobile yang intuitif. Jelajahi fitur-fitur utamanya dengan mengklik daftar di samping untuk melihat visualisasi nyata dari proposal pada mockup ponsel.</p>
+            <div class="grid lg:grid-cols-3 gap-12 items-center">
+                <div class="lg:col-span-1">
+                    <ul id="feature-list" class="space-y-3">
+                        <li data-screen="login" class="feature-item active cursor-pointer border-2 border-transparent p-4 rounded-lg transition-all">
+                            <h4 class="font-bold text-lg">1. Autentikasi Pengguna</h4>
+                            <p class="text-sm text-gray-600">Login dan registrasi untuk keamanan data.</p>
+                        </li>
+                        <li data-screen="posyandu" class="feature-item cursor-pointer border-2 border-transparent p-4 rounded-lg transition-all">
+                            <h4 class="font-bold text-lg">2. Manajemen Posyandu</h4>
+                            <p class="text-sm text-gray-600">Mengelola beberapa posyandu dalam satu aplikasi.</p>
+                        </li>
+                        <li data-screen="balita" class="feature-item cursor-pointer border-2 border-transparent p-4 rounded-lg transition-all">
+                            <h4 class="font-bold text-lg">3. Manajemen Balita</h4>
+                            <p class="text-sm text-gray-600">Menambah, mencari, dan mengelola data balita.</p>
+                        </li>
+                        <li data-screen="detail" class="feature-item cursor-pointer border-2 border-transparent p-4 rounded-lg transition-all">
+                            <h4 class="font-bold text-lg">4. Detail & Pencatatan</h4>
+                            <p class="text-sm text-gray-600">Melihat riwayat lengkap dan input data baru.</p>
+                        </li>
+                         <li data-screen="riwayat" class="feature-item cursor-pointer border-2 border-transparent p-4 rounded-lg transition-all">
+                            <h4 class="font-bold text-lg">5. Riwayat & Filter</h4>
+                            <p class="text-sm text-gray-600">Memfilter balita berdasarkan statusnya.</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="lg:col-span-2 flex justify-center">
+                    <div class="phone-mockup w-full max-w-sm">
+                        <div class="phone-screen">
+                            <img id="phone-screen-img" src="https://storage.googleapis.com/gemini-prod-us-central1-gd-scratch-space/kP%20YSP%5B1%5D.docx_1721763152504_1_1.png" alt="Tampilan Aplikasi Login" class="w-full h-full object-contain p-2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="architecture" class="py-24 fade-in-section">
+            <h2 class="section-title">Arsitektur & Teknologi</h2>
+            <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">Proyek ini akan dibangun di atas arsitektur Client-Server yang solid dan modern. Pendekatan ini memisahkan antarmuka pengguna (aplikasi mobile) dengan logika bisnis dan database di server, memastikan skalabilitas dan kemudahan pemeliharaan.</p>
+            <div class="bg-white p-10 rounded-2xl shadow-lg border border-gray-200">
+                <div class="flex flex-col md:flex-row items-center justify-around space-y-8 md:space-y-0 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="text-6xl mb-3">📱</div>
+                        <h4 class="text-xl font-bold text-purple-accent">Client (Mobile App)</h4>
+                        <p class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold mt-2">Flutter</p>
+                    </div>
+                    <div class="text-4xl text-gray-300 font-thin transform md:rotate-0 rotate-90">➡️</div>
+                    <div class="flex flex-col items-center">
+                        <div class="text-6xl mb-3">⚙️</div>
+                        <h4 class="text-xl font-bold text-purple-accent">Backend (REST API)</h4>
+                        <p class="bg-red-100 text-red-800 px-3 py-1 rounded-full font-semibold mt-2">Laravel</p>
+                    </div>
+                     <div class="text-4xl text-gray-300 font-thin transform md:rotate-0 rotate-90">➡️</div>
+                    <div class="flex flex-col items-center">
+                        <div class="text-6xl mb-3">🗄️</div>
+                        <h4 class="text-xl font-bold text-purple-accent">Database</h4>
+                        <p class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold mt-2">MySQL</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="timeline" class="py-24 fade-in-section">
+            <h2 class="section-title">Linimasa Proyek (2 Bulan)</h2>
+            <p class="text-center text-gray-600 max-w-3xl mx-auto mb-16">Pengembangan akan dilakukan secara iteratif dalam jangka waktu dua bulan, memastikan setiap tahap diselesaikan dengan baik sebelum melanjutkan ke tahap berikutnya.</p>
+            <div class="relative max-w-3xl mx-auto">
+                <div class="absolute left-4 md:left-1/2 w-0.5 h-full bg-purple-200"></div>
+                <div class="relative mb-10 timeline-item">
+                    <div class="absolute left-4 md:left-1/2 -ml-3 w-6 h-6 rounded-full bg-purple-accent border-4 border-white"></div>
+                    <div class="ml-10 md:ml-0 md:w-1/2 md:pl-0 md:pr-12 text-left md:text-right">
+                        <div class="p-4 rounded-lg bg-white shadow-md timeline-content">
+                            <h4 class="text-lg font-bold text-purple-accent">Bulan 1: Minggu 1-2</h4>
+                            <p class="text-gray-700">Analisis Kebutuhan & Perancangan Sistem (Arsitektur, Database, UI/UX).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative mb-10 timeline-item">
+                    <div class="absolute left-4 md:left-1/2 -ml-3 w-6 h-6 rounded-full bg-purple-accent border-4 border-white"></div>
+                    <div class="ml-10 md:ml-1/2 md:pl-12">
+                         <div class="p-4 rounded-lg bg-white shadow-md timeline-content">
+                            <h4 class="text-lg font-bold text-purple-accent">Bulan 1: Minggu 3-4</h4>
+                            <p class="text-gray-700">Implementasi Backend (API) dan Penyiapan Database.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative mb-10 timeline-item">
+                    <div class="absolute left-4 md:left-1/2 -ml-3 w-6 h-6 rounded-full bg-purple-accent border-4 border-white"></div>
+                    <div class="ml-10 md:ml-0 md:w-1/2 md:pl-0 md:pr-12 text-left md:text-right">
+                         <div class="p-4 rounded-lg bg-white shadow-md timeline-content">
+                            <h4 class="text-lg font-bold text-purple-accent">Bulan 2: Minggu 1-3</h4>
+                            <p class="text-gray-700">Implementasi Frontend (Aplikasi Mobile) dengan Flutter.</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="relative timeline-item">
+                    <div class="absolute left-4 md:left-1/2 -ml-3 w-6 h-6 rounded-full bg-purple-accent border-4 border-white"></div>
+                    <div class="ml-10 md:ml-1/2 md:pl-12">
+                        <div class="p-4 rounded-lg bg-white shadow-md timeline-content">
+                            <h4 class="text-lg font-bold text-purple-accent">Bulan 2: Minggu 4</h4>
+                            <p class="text-gray-700">Pengujian Sistem (API & Mobile), Perbaikan Bug, dan Finalisasi.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="mitra" class="py-24 fade-in-section">
+            <h2 class="section-title">Dukungan Mitra</h2>
+            <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">Proyek ini tidak hanya sebuah konsep akademis, tetapi juga didukung oleh praktisi di lapangan, yang memberikan validasi dan relevansi dunia nyata.</p>
+            <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-200 text-center">
+                <span class="text-5xl">🤝</span>
+                <p class="text-xl text-gray-700 mt-4 italic">"Dengan ini menyatakan Bersedia untuk Bekerjasama dengan Pelaksana Kegiatan Tugas Praktik..."</p>
+                <div class="mt-6">
+                    <p class="text-lg font-bold text-purple-accent">Taroib Nangimahtul Chairiyah, S. Keb</p>
+                    <p class="text-gray-600 font-medium">Pimpinan Mitra Usaha, Puskesmas Kroya I</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="budget" class="py-24 fade-in-section">
+             <div class="bg-white p-10 rounded-2xl shadow-lg border border-gray-200">
+                <h2 class="section-title">Alokasi Anggaran Proyek</h2>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">Transparansi anggaran adalah kunci. Berikut adalah rincian alokasi dana untuk proyek yang berlangsung selama 2 bulan, dengan total anggaran sebesar Rp 1.300.000. Visualisasi ini membantu memahami bagaimana setiap komponen biaya berkontribusi pada keseluruhan proyek.</p>
+                <div class="chart-container">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <footer id="contact" class="bg-gray-800 text-white mt-16">
+        <div class="container mx-auto px-6 py-10 text-center">
+            <h3 class="text-2xl font-bold mb-2">Informasi Kontak</h3>
+            <p class="text-gray-300">Yusuf Nur Alam</p>
+            <p class="text-gray-300">yusufnuralam0@gmail.com</p>
+            <p class="mt-6 text-sm text-gray-400">&copy; 2025 Universitas Amikom Purwokerto. Seluruh hak cipta dilindungi.</p>
+        </div>
+    </footer>
+    
+    <button id="scrollTopBtn" class="hidden fixed bottom-8 right-8 bg-orange-accent text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-2xl transition-all hover:bg-orange-500 hover:scale-110">
+        ↑
+    </button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Chart.js
+            const budgetData = {
+                labels: ['Sewa VPS (Server)', 'Data Internet', 'Transportasi (Bensin)', 'Dana Darurat'],
+                datasets: [{
+                    label: 'Alokasi Anggaran',
+                    data: [700000, 400000, 100000, 100000],
+                    backgroundColor: ['#6B21A8', '#F97316', '#FACC15', '#94A3B8'],
+                    borderColor: '#F8FAFC',
+                    borderWidth: 4,
+                    hoverOffset: 8
+                }]
+            };
+            const budgetConfig = {
+                type: 'doughnut',
+                data: budgetData,
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#475569', font: { size: 14, family: "'Inter', sans-serif" }}
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.label}: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(context.parsed)}`
+                            }
+                        }
+                    }
+                },
+            };
+            new Chart(document.getElementById('budgetChart'), budgetConfig);
+
+            // Scroll Animations
+            const sections = document.querySelectorAll('.fade-in-section');
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            sections.forEach(section => observer.observe(section));
+
+            // Interactive Mockup
+            const featureItems = document.querySelectorAll('.feature-item');
+            const phoneScreenImg = document.getElementById('phone-screen-img');
+            const screens = {
+                login: 'https://storage.googleapis.com/gemini-prod-us-central1-gd-scratch-space/kP%20YSP%5B1%5D.docx_1721763152504_1_1.png',
+                posyandu: 'https://storage.googleapis.com/gemini-prod-us-central1-gd-scratch-space/kP%20YSP%5B1%5D.docx_1721763152504_1_3.png',
+                balita: 'https://storage.googleapis.com/gemini-prod-us-central1-gd-scratch-space/kP%20YSP%5B1%5D.docx_1721763152504_1_5.png',
+                detail: 'https://storage.googleapis.com/gemini-prod-us-central1-gd-scratch-space/kP%20YSP%5B1%5D.docx_1721763152504_1_6.png',
+                riwayat: 'https://storage.googleapis.com/gemini-prod-us-central1-gd-scratch-space/kP%20YSP%5B1%5D.docx_1721763152504_1_8.png'
+            };
+            featureItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    featureItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    const screenKey = item.getAttribute('data-screen');
+                    
+                    phoneScreenImg.style.opacity = 0;
+                    setTimeout(() => {
+                        phoneScreenImg.src = screens[screenKey];
+                        phoneScreenImg.style.opacity = 1;
+                    }, 400);
+                });
+            });
+
+            // Smooth Scroll & Scroll-to-top button
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    scrollTopBtn.classList.remove('hidden');
+                } else {
+                    scrollTopBtn.classList.add('hidden');
+                }
+            });
+            scrollTopBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
