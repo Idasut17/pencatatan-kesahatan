@@ -55,31 +55,6 @@ class Balitaservice {
   }
 
   // Get balita by posyandu untuk user yang sedang login
-  Future<List<BalitaModel>> GetBalitaByPosyanduAndUser(int posyanduId) async {
-    try {
-      final userId = await AuthService.getUserId();
-      if (userId == null) {
-        throw Exception('User tidak terautentikasi');
-      }
-
-      final response = await http.get(
-        Uri.parse('$base_url/balita/posyandu/$posyanduId/user/$userId'),
-        headers: await AuthService.getAuthHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return (data['data'] as List)
-            .map((e) => BalitaModel.fromJson(e))
-            .toList();
-      } else {
-        throw Exception('Gagal memuat data balita posyandu untuk user');
-      }
-    } catch (e) {
-      print(e);
-      throw Exception('Gagal terhubung ke server: $e');
-    }
-  }
 
   // Get balita aktif by posyandu
   Future<List<BalitaModel>> getBalitaAktifByPosyandu(int posyanduId) async {

@@ -20,7 +20,7 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   // Filter utama: status ('semua', 'sudah', 'belum', 'segera'), dan jenis imunisasi
   String _filter = 'semua';
   String? _filterJenisImunisasi;
-  final List<String> _daftarJenisImunisasi = ['DPT', 'Campak', 'Hepatitis B'];
+  final List<String> _daftarJenisImunisasi = ['DPT', 'Campak'];
 
   Widget _buildFilterOption(
     String value,
@@ -29,7 +29,7 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
     Color color,
   ) {
     final count = _filterCounts[value] ?? 0;
-    
+
     return ListTile(
       leading: Icon(icon, color: color),
       title: Row(
@@ -153,7 +153,7 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   late Future<List<BalitaModel>> _balitaList;
   bool _isAuthenticated = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  
+
   // Tambahan untuk menghitung jumlah setiap filter
   Map<String, int> _filterCounts = {
     'semua': 0,
@@ -202,7 +202,7 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   // Fungsi untuk menghitung jumlah balita untuk setiap filter
   void _calculateFilterCounts(List<BalitaModel> allBalita) {
     final now = DateTime.now();
-    
+
     // Reset counts
     _filterCounts = {
       'semua': 0,
@@ -213,15 +213,18 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
     };
 
     // Filter balita aktif (berusia di bawah 6 tahun) untuk perhitungan
-    final activeBalita = allBalita.where((balita) {
-      final age = now.year - balita.tanggalLahir.year -
-          ((now.month < balita.tanggalLahir.month ||
-                  (now.month == balita.tanggalLahir.month &&
-                      now.day < balita.tanggalLahir.day))
-              ? 1
-              : 0);
-      return age < 6; // Hanya balita aktif
-    }).toList();
+    final activeBalita =
+        allBalita.where((balita) {
+          final age =
+              now.year -
+              balita.tanggalLahir.year -
+              ((now.month < balita.tanggalLahir.month ||
+                      (now.month == balita.tanggalLahir.month &&
+                          now.day < balita.tanggalLahir.day))
+                  ? 1
+                  : 0);
+          return age < 6; // Hanya balita aktif
+        }).toList();
 
     _filterCounts['semua'] = activeBalita.length;
 
@@ -238,10 +241,11 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
 
       // Segera imunisasi (18+ bulan, belum pernah imunisasi)
       final waktuImunisasi = DateTime(now.year - 1, now.month - 6, now.day);
-      final isOldEnough = balita.tanggalLahir.isBefore(waktuImunisasi) ||
+      final isOldEnough =
+          balita.tanggalLahir.isBefore(waktuImunisasi) ||
           balita.tanggalLahir.isAtSameMomentAs(waktuImunisasi);
       final hasNoImmunization = balita.imunisasiList.isEmpty;
-      
+
       if (isOldEnough && hasNoImmunization) {
         _filterCounts['segera'] = _filterCounts['segera']! + 1;
       }
@@ -278,12 +282,13 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   // Fungsi untuk filter data posyandu berdasarkan user yang login
   Future<List<BalitaModel>> _getBalitaByPosyanduAndUserWithFilter() async {
     try {
-      List<BalitaModel> allBalita =
-          await _balitaService.GetBalitaByPosyanduAndUser(widget.posyandu!.id!);
-      
+      List<BalitaModel> allBalita = await _balitaService.GetBalitaByPosyandu(
+        widget.posyandu!.id!,
+      );
+
       // Hitung jumlah untuk setiap filter
       _calculateFilterCounts(allBalita);
-      
+
       return _applyFilters(allBalita);
     } catch (e) {
       print('Error dalam GetBalitaByPosyanduAndUser: $e');
@@ -295,7 +300,7 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   Future<List<BalitaModel>> _getBalitaByUserWithFilter() async {
     try {
       List<BalitaModel> allBalita = await _balitaService.getAllBalitaByUser();
-      
+
       // Hitung jumlah untuk setiap filter
       _calculateFilterCounts(allBalita);
 
@@ -495,7 +500,7 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
         builder: (context) => BalitaDetailScreen(balita: balita),
       ),
     );
-    
+
     // Refresh data jika ada perubahan dari detail screen
     if (result == true && mounted) {
       refreshData();
@@ -829,7 +834,8 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
                                     ),
                                   ),
                                   subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text('NIK: ${balita.nik}'),
                                       if (isDeceased)
@@ -856,95 +862,104 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
                                     color: Colors.grey.shade600,
                                   ),
                                 ),
-                              // Kontainer untuk jenis imunisasi
-                              Builder(
-                                builder: (context) {
-                                  final imunisasiList = _getImunisasiBalita(
-                                    balita,
-                                  );
+                                // Kontainer untuk jenis imunisasi
+                                Builder(
+                                  builder: (context) {
+                                    final imunisasiList = _getImunisasiBalita(
+                                      balita,
+                                    );
 
-                                  return Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      0,
-                                      16,
-                                      16,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Status Imunisasi:',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                            color: Colors.grey,
+                                    return Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        16,
+                                        0,
+                                        16,
+                                        16,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Status Imunisasi:',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Wrap(
-                                          spacing: 6,
-                                          runSpacing: 4,
-                                          children:
-                                              _daftarJenisImunisasi.map((
-                                                jenis,
-                                              ) {
-                                                final sudah = imunisasiList.any(
-                                                  (i) =>
-                                                      i.jenisImunisasi == jenis,
-                                                );
-                                                return Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        sudah
-                                                            ? Colors.green[300]
-                                                            : Colors.red[300],
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
+                                          const SizedBox(height: 8),
+                                          Wrap(
+                                            spacing: 6,
+                                            runSpacing: 4,
+                                            children:
+                                                _daftarJenisImunisasi.map((
+                                                  jenis,
+                                                ) {
+                                                  final sudah = imunisasiList
+                                                      .any(
+                                                        (i) =>
+                                                            i.jenisImunisasi ==
+                                                            jenis,
+                                                      );
+                                                  return Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 4,
                                                         ),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        sudah
-                                                            ? Icons.check
-                                                            : Icons.close,
-                                                        color: Colors.white,
-                                                        size: 14,
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        jenis,
-                                                        style: const TextStyle(
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          sudah
+                                                              ? Colors
+                                                                  .green[300]
+                                                              : Colors.red[300],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          sudah
+                                                              ? Icons.check
+                                                              : Icons.close,
                                                           color: Colors.white,
-                                                          fontSize: 11,
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                                          size: 14,
                                                         ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              }).toList(),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
+                                                        Text(
+                                                          jenis,
+                                                          style:
+                                                              const TextStyle(
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                                fontSize: 11,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
+                        );
                       },
                     );
                   },

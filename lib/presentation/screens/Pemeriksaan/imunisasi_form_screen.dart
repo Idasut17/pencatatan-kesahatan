@@ -39,7 +39,7 @@ class _ImunisasiFormScreenState extends State<ImunisasiFormScreen> {
   void initState() {
     super.initState();
     // Selalu gunakan enum dari database
-    _opsiImunisasi = ['DPT', 'Campak', 'Hepatitis B'];
+    _opsiImunisasi = ['DPT', 'Campak'];
     // Jika ini mode edit, isi form dengan data yang ada
     if (_isEditing) {
       final imunisasi = widget.imunisasiToEdit!;

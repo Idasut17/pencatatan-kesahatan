@@ -24,7 +24,6 @@ class KohortDetailScreen extends StatefulWidget {
 
 class _KohortDetailScreenState extends State<KohortDetailScreen>
     with RouteAware {
-
   // Widget untuk sidebar filter (mirip AllBalitaScreen, warna dan icon disesuaikan)
   Widget _buildFilterSidebar() {
     return Drawer(
@@ -360,9 +359,7 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
     if (_currentUserId != null) {
       if (widget.posyandu != null) {
         // Jika ada posyandu yang dipilih, ambil data balita berdasarkan posyandu dan user
-        _balitaList = _balitaService.GetBalitaByPosyanduAndUser(
-          widget.posyandu!.id!,
-        );
+        _balitaList = _balitaService.GetBalitaByPosyandu(widget.posyandu!.id!);
       } else {
         // Jika tidak ada posyandu, ambil semua data balita milik user
         _balitaList = _balitaService.getAllBalitaByUser();
