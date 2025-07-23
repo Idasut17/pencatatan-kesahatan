@@ -1010,7 +1010,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                                     ),
                               );
 
-                              await AuthService.forceLogout();
+                              await AuthService.logout();
 
                               if (context.mounted) {
                                 Navigator.pushAndRemoveUntil(

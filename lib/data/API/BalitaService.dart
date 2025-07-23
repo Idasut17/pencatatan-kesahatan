@@ -90,9 +90,10 @@ class Balitaservice {
 
   Future<List<BalitaModel>> GetAllBalita() async {
     try {
+      final userID = await AuthService.getUserId();
       final response = await http
           .get(
-            Uri.parse(base_url + '/balita'),
+            Uri.parse(base_url + '/balita/user/$userID'),
             headers: await AuthService.getAuthHeaders(),
           )
           .timeout(const Duration(seconds: 10));

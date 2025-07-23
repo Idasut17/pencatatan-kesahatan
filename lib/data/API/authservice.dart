@@ -74,22 +74,16 @@ class AuthService {
       final userId = await getUserId();
       final name = await _secureStorage.read(key: _userNameKey);
       final email = await _secureStorage.read(key: _userEmailKey);
-      final token = await getToken();
 
       // Validasi semua data harus ada dan tidak empty
       if (userId != null &&
           name != null &&
           name.isNotEmpty &&
           email != null &&
-          email.isNotEmpty &&
-          token != null &&
-          token.isNotEmpty) {
+          email.isNotEmpty) {
         return User(id: userId, name: name, email: email);
       }
 
-      // Jika ada data yang tidak valid, clear semua data
-      print('Invalid user data detected, clearing all authentication data');
-      await forceLogout();
       return null;
     } catch (e) {
       print('Error getting current user: $e');
@@ -114,38 +108,24 @@ class AuthService {
 
       if (response.statusCode == 200) {
         print('Server logout successful.');
+        try {
+          await _secureStorage.delete(key: _tokenKey);
+          await _secureStorage.delete(key: _userIdKey);
+          await _secureStorage.delete(key: _userNameKey);
+          await _secureStorage.delete(key: _userEmailKey);
+          print('Local data cleared successfully.');
+        } catch (e) {
+          print('Error clearing local data: $e');
+          // Fallback: hapus semua data
+          await _secureStorage.deleteAll();
+          print('All secure storage cleared as fallback.');
+        }
       } else {
         print('Server logout failed: ${response.reasonPhrase}');
       }
     } catch (e) {
       print('Error during server logout: $e');
     }
-
-    // Selalu hapus data lokal terlepas dari status server
-    try {
-      await _secureStorage.delete(key: _tokenKey);
-      await _secureStorage.delete(key: _userIdKey);
-      await _secureStorage.delete(key: _userNameKey);
-      await _secureStorage.delete(key: _userEmailKey);
-      print('Local data cleared successfully.');
-    } catch (e) {
-      print('Error clearing local data: $e');
-      // Fallback: hapus semua data
-      await _secureStorage.deleteAll();
-      print('All secure storage cleared as fallback.');
-    }
-  }
-
-  // Clear all secure storage (untuk keperluan debugging)
-  static Future<void> clearAll() async {
-    await _secureStorage.deleteAll();
-    print('All authentication data cleared.');
-  }
-
-  // Force clear authentication - untuk memastikan logout bersih
-  static Future<void> forceLogout() async {
-    await _secureStorage.deleteAll();
-    print('Force logout completed - all data cleared.');
   }
 
   // Method untuk API calls yang memerlukan authentication
@@ -156,33 +136,6 @@ class AuthService {
       'Accept': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
-  }
-
-  // Contoh method untuk refresh token (opsional)
-  static Future<bool> refreshToken() async {
-    try {
-      final currentToken = await getToken();
-      if (currentToken == null) return false;
-
-      final response = await http.post(
-        Uri.parse('$base_url/refresh'),
-        headers: await getAuthHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        if (responseData['success'] == true && responseData['token'] != null) {
-          await _secureStorage.write(
-            key: _tokenKey,
-            value: responseData['token'],
-          );
-          return true;
-        }
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
   }
 
   static Future<bool> register(
