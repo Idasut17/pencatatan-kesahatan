@@ -20,7 +20,7 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   // Filter utama: status ('semua', 'sudah', 'belum', 'segera'), dan jenis imunisasi
   String _filter = 'semua';
   String? _filterJenisImunisasi;
-  final List<String> _daftarJenisImunisasi = ['DPT', 'Campak'];
+  final List<String> _daftarJenisImunisasi = ['DPT', 'Campak', 'Hepatitis B'];
 
   Widget _buildFilterOption(
     String value,
@@ -282,16 +282,15 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   // Fungsi untuk filter data posyandu berdasarkan user yang login
   Future<List<BalitaModel>> _getBalitaByPosyanduAndUserWithFilter() async {
     try {
-      List<BalitaModel> allBalita = await _balitaService.GetBalitaByPosyandu(
-        widget.posyandu!.id!,
-      );
+      List<BalitaModel> allBalita =
+          await _balitaService.GetBalitaByPosyandu(widget.posyandu!.id!);
 
       // Hitung jumlah untuk setiap filter
       _calculateFilterCounts(allBalita);
 
       return _applyFilters(allBalita);
     } catch (e) {
-      print('Error dalam GetBalitaByPosyanduAndUser: $e');
+      print('Error dalam GetBalitaByPosyandu: $e');
       return [];
     }
   }

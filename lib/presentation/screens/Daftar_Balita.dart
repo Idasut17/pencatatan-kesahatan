@@ -358,8 +358,10 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
   void _loadBalitaData() {
     if (_currentUserId != null) {
       if (widget.posyandu != null) {
-        // Jika ada posyandu yang dipilih, ambil data balita berdasarkan posyandu dan user
-        _balitaList = _balitaService.GetBalitaByPosyandu(widget.posyandu!.id!);
+        // Jika ada posyandu yang dipilih, ambil data balita berdasarkan posyandu
+        _balitaList = _balitaService.GetBalitaByPosyandu(
+          widget.posyandu!.id!,
+        );
       } else {
         // Jika tidak ada posyandu, ambil semua data balita milik user
         _balitaList = _balitaService.getAllBalitaByUser();
