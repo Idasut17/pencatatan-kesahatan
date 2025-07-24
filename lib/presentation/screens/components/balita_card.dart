@@ -27,12 +27,8 @@ class BalitaCard extends StatelessWidget {
               : 'Meninggal: Tanggal tidak tersedia';
     } else {
       subtitleText += 'Ibu: ${balita.namaIbu} | Usia: $age tahun';
-      subtitleText +=
-          '\nStatus Imunisasi: ' +
-          (balita.sudahImunisasi == true
-              ? 'Sudah Imunisasi'
-              : 'Belum Imunisasi');
     }
+
     return Card(
       color:
           isDeceased
@@ -58,7 +54,55 @@ class BalitaCard extends StatelessWidget {
           balita.nama,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(subtitleText),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(subtitleText),
+            // Container untuk status imunisasi (hanya untuk balita yang hidup)
+            if (!isDeceased) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children:
+                    ['DPT', 'Campak', 'Hepatitis B'].map((jenis) {
+                      final sudah = balita.imunisasiList.any(
+                        (i) => i.jenisImunisasi == jenis,
+                      );
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: sudah ? Colors.green[300] : Colors.red[300],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              sudah ? Icons.check : Icons.close,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              jenis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+              ),
+            ],
+          ],
+        ),
         isThreeLine: true,
         onTap: onTap,
         trailing:

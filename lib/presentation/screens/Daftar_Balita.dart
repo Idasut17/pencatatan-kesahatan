@@ -358,8 +358,8 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
   void _loadBalitaData() {
     if (_currentUserId != null) {
       if (widget.posyandu != null) {
-        // Jika ada posyandu yang dipilih, ambil data balita berdasarkan posyandu
-        _balitaList = _balitaService.GetBalitaByPosyandu(
+        // Jika ada posyandu yang dipilih, ambil data balita berdasarkan posyandu dan user
+        _balitaList = _balitaService.GetBalitaByPosyanduAndUser(
           widget.posyandu!.id!,
         );
       } else {
@@ -635,21 +635,17 @@ class _KohortDetailScreenState extends State<KohortDetailScreen>
         actions: [
           Builder(
             builder:
-                (context) => Row(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.teal.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.tune, color: Color(0xFF00897B)),
-                        onPressed: () => Scaffold.of(context).openEndDrawer(),
-                        tooltip: 'Filter Data',
-                      ),
-                    ),
-                  ],
+                (context) => Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.tune, color: Color(0xFF00897B)),
+                    onPressed: () => Scaffold.of(context).openEndDrawer(),
+                    tooltip: 'Filter Data',
+                  ),
                 ),
           ),
         ],

@@ -37,7 +37,15 @@ class _KunjunganFormScreenState extends State<KunjunganFormScreen> {
   };
 
   String? _selectedRambuGizi;
-  final List<String> _rambuGiziOptions = ['O', 'N1', 'N2', 'T1', 'T2', 'T3'];
+  final List<String> _rambuGiziOptions = [
+    'N1',
+    'N2',
+    'T1',
+    'T2',
+    'T3',
+    '2T',
+    'O',
+  ];
 
   // State untuk loading indicator
   bool _isLoading = false;
@@ -112,6 +120,228 @@ class _KunjunganFormScreenState extends State<KunjunganFormScreen> {
     }
   }
 
+  void _showRambuGiziInfo() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.info, color: Colors.blue),
+              SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Keterangan Rambu Gizi',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Rambu Gizi adalah indikator pertumbuhan balita berdasarkan grafik KMS (Kartu Menuju Sehat):',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Kategori Utama
+                  const Text(
+                    'KATEGORI UTAMA',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildRambuDetailInfo(
+                    'N',
+                    'Naik',
+                    'Pertumbuhan anak baik dan sesuai harapan',
+                    Colors.green,
+                  ),
+                  _buildRambuDetailInfo(
+                    'T',
+                    'Tidak Naik',
+                    'Pertumbuhan anak bermasalah dan perlu perhatian khusus',
+                    Colors.red,
+                  ),
+
+                  const SizedBox(height: 16),
+                  const Text(
+                    'PERTUMBUHAN BAIK (Sub-kategori N)',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.green,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildRambuDetailInfo(
+                    'N1',
+                    'Tumbuh Kejar',
+                    'Percepatan pertumbuhan setelah sembuh dari sakit',
+                    Colors.green,
+                  ),
+                  _buildRambuDetailInfo(
+                    'N2',
+                    'Tumbuh Normal',
+                    'Pertumbuhan stabil mengikuti jalur standar',
+                    Colors.green,
+                  ),
+
+                  const SizedBox(height: 16),
+                  const Text(
+                    'PERTUMBUHAN BERMASALAH (Sub-kategori T)',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildRambuDetailInfo(
+                    'T1',
+                    'Pertumbuhan Kurang',
+                    'Kenaikan berat badan melambat dari harapan',
+                    Colors.orange,
+                  ),
+                  _buildRambuDetailInfo(
+                    'T2',
+                    'Berat Badan Tetap',
+                    'Tidak ada kenaikan berat badan (stagnan)',
+                    Colors.red,
+                  ),
+                  _buildRambuDetailInfo(
+                    'T3',
+                    'Berat Badan Menurun',
+                    'Kehilangan berat badan (paling mengkhawatirkan)',
+                    Colors.red,
+                  ),
+
+                  const SizedBox(height: 16),
+                  const Text(
+                    'KODE KHUSUS',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.purple,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildRambuDetailInfo(
+                    '2T',
+                    'Dua Kali Tidak Naik',
+                    'Tidak naik berturut-turut - sinyal bahaya!',
+                    Colors.red,
+                  ),
+                  _buildRambuDetailInfo(
+                    'O',
+                    'Tidak Ditimbang',
+                    'Tidak ditimbang bulan lalu - tidak bisa ditentukan tren',
+                    Colors.grey,
+                  ),
+
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: const Text(
+                      'Pilih rambu gizi yang sesuai dengan hasil penimbangan dan analisis grafik pertumbuhan balita.',
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.blue,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildRambuDetailInfo(
+    String code,
+    String title,
+    String description,
+    Color color,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 36,
+              height: 28,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                border: Border.all(color: color, width: 1.5),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Center(
+                child: Text(
+                  code,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _tanggalController.dispose();
@@ -134,6 +364,13 @@ class _KunjunganFormScreenState extends State<KunjunganFormScreen> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: Colors.black, size: 24),
+            onPressed: _showRambuGiziInfo,
+            tooltip: 'Info Rambu Gizi',
+          ),
+        ],
       ),
       extendBodyBehindAppBar: true,
       body: Stack(
@@ -300,6 +537,7 @@ class _KunjunganFormScreenState extends State<KunjunganFormScreen> {
                                   ),
                                   Column(
                                     children: [
+                                      // Baris pertama: N1, N2, T1
                                       Row(
                                         children:
                                             _rambuGiziOptions
@@ -328,6 +566,7 @@ class _KunjunganFormScreenState extends State<KunjunganFormScreen> {
                                                 )
                                                 .toList(),
                                       ),
+                                      // Baris kedua: T2, T3, 2T
                                       Row(
                                         children:
                                             _rambuGiziOptions
@@ -355,6 +594,29 @@ class _KunjunganFormScreenState extends State<KunjunganFormScreen> {
                                                   ),
                                                 )
                                                 .toList(),
+                                      ),
+                                      // Baris ketiga: O (di tengah)
+                                      Row(
+                                        children: [
+                                          Expanded(child: Container()),
+                                          Expanded(
+                                            child: RadioListTile<String>(
+                                              title: const Text('O'),
+                                              value: 'O',
+                                              groupValue: _selectedRambuGizi,
+                                              onChanged: (value) {
+                                                setState(
+                                                  () =>
+                                                      _selectedRambuGizi =
+                                                          value,
+                                                );
+                                                state.didChange(value);
+                                              },
+                                              contentPadding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                          Expanded(child: Container()),
+                                        ],
                                       ),
                                     ],
                                   ),

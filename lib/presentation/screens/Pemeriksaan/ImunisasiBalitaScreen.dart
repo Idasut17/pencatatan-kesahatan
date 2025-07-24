@@ -283,14 +283,14 @@ class _ImunisasiBalitaScreenState extends State<ImunisasiBalitaScreen> {
   Future<List<BalitaModel>> _getBalitaByPosyanduAndUserWithFilter() async {
     try {
       List<BalitaModel> allBalita =
-          await _balitaService.GetBalitaByPosyandu(widget.posyandu!.id!);
+          await _balitaService.GetBalitaByPosyanduAndUser(widget.posyandu!.id!);
 
       // Hitung jumlah untuk setiap filter
       _calculateFilterCounts(allBalita);
 
       return _applyFilters(allBalita);
     } catch (e) {
-      print('Error dalam GetBalitaByPosyandu: $e');
+      print('Error dalam GetBalitaByPosyanduAndUser: $e');
       return [];
     }
   }
